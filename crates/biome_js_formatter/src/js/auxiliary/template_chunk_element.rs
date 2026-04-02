@@ -2,8 +2,7 @@ use crate::prelude::*;
 use biome_formatter::write;
 
 use biome_js_syntax::{
-    AnyJsExpression, JsCallArgumentList, JsCallArguments, JsCallExpression, JsSyntaxToken,
-    JsTemplateChunkElement, JsTemplateExpression, TsTemplateChunkElement,
+    AnyJsExpression, JsCallArgumentList, JsCallArguments, JsCallExpression, JsObjectExpression, JsObjectMemberList, JsPropertyObjectMember, JsSyntaxToken, JsTemplateChunkElement, JsTemplateExpression, TsTemplateChunkElement
 };
 use biome_rowan::{AstNode, SyntaxResult, declare_node_union};
 use biome_text_size::TextRange;
@@ -61,6 +60,7 @@ const KNOWN_EMBED_OBJECTS: &[&str] = &["styled", "graphql"];
 ///
 /// Returns `Some(true)` only for templates whose tag or call pattern matches
 /// one of the known embed detectors:
+/// - ``css({ key: `...` })`` (untagged template in a plain object as argument to known callee)
 /// - `css```, `gql```, `graphql``` (identifier tag)
 /// - `styled.div```, `styled(Comp)``` (member/call with known object)
 /// - `graphql(`...`)` (untagged template as argument to known callee)
@@ -105,6 +105,23 @@ fn is_plausible_embed_template(expr: &JsTemplateExpression) -> Option<bool> {
             }
             _ => false,
         });
+    }
+
+    // e.g. css({ key: `...` })
+    let call_expr = expr
+        .parent::<JsPropertyObjectMember>()
+        .and_then(|p| p.parent::<JsObjectMemberList>())
+        .and_then(|p| p.parent::<JsObjectExpression>())
+        .and_then(|p| p.parent::<JsCallArgumentList>())
+        .and_then(|p| p.parent::<JsCallArguments>())
+        .and_then(|p| p.parent::<JsCallExpression>());
+
+    if let Some(call) = call_expr {
+        if let AnyJsExpression::JsIdentifierExpression(ident) = call.callee().ok()? {
+            if ident.name().ok()?.value_token().ok()?.text_trimmed() == "css" {
+                return Some(true);
+            }
+        };
     }
 
     // No tag — check if template is an argument to a known call expression.

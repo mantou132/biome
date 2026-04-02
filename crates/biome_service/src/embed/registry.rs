@@ -182,10 +182,14 @@ fn resolve_directive_language(
     Some(GuestLanguage::JsModule)
 }
 
-static JS_DETECTORS: [EmbedDetector; 5] = [
+static JS_DETECTORS: [EmbedDetector; 6] = [
     // css`` → CSS
     EmbedDetector::TemplateTag {
         tag: "css",
+        target: EmbedTarget::Static(GuestLanguage::Css),
+    },
+    // css({ key: `...` }) → CSS (template values in object literal argument)
+    EmbedDetector::CssObjectCall {
         target: EmbedTarget::Static(GuestLanguage::Css),
     },
     // styled.div``, styled(Comp)`` → CSS

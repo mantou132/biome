@@ -57,17 +57,14 @@ use biome_js_formatter::format_node;
 use biome_js_parser::JsParserOptions;
 use biome_js_semantic::{SemanticModelOptions, semantic_model};
 use biome_js_syntax::{
-    AnyJsExpression, AnyJsRoot, AnyJsTemplateElement, JsCallArgumentList, JsCallArguments,
-    JsCallExpression, JsClassDeclaration, JsClassExpression, JsFileSource, JsFunctionDeclaration,
-    JsLanguage, JsSyntaxNode, JsTemplateChunkElement, JsTemplateExpression, JsVariableDeclarator,
-    TextRange, TextSize, TokenAtOffset,
+    AnyJsExpression, AnyJsRoot, AnyJsTemplateElement, JsCallArgumentList, JsCallArguments, JsCallExpression, JsClassDeclaration, JsClassExpression, JsFileSource, JsFunctionDeclaration, JsLanguage, JsObjectExpression, JsObjectMemberList, JsPropertyObjectMember, JsSyntaxNode, JsTemplateChunkElement, JsTemplateExpression, JsVariableDeclarator, TextRange, TextSize, TokenAtOffset
 };
 use biome_js_type_info::{GlobalsResolver, ScopeId, TypeData, TypeResolver};
 use biome_module_graph::ModuleGraph;
 use biome_parser::AnyParse;
 use biome_rowan::{
-    AstNode, AstNodeList, BatchMutation, BatchMutationExt, Direction, NodeCache, SendNode,
-    WalkEvent,
+    AstNode, AstNodeList, BatchMutation, BatchMutationExt, Direction, NodeCache,
+    SendNode, WalkEvent,
 };
 use camino::Utf8Path;
 use either::Either;
@@ -629,9 +626,34 @@ fn build_js_template_candidate(expr: &JsTemplateExpression) -> Option<EmbedCandi
         return None;
     };
 
+    let content_token = chunk.template_chunk_token().ok()?;
+
+    // e.g. css({ key: `...` })
+    let call_expr = expr
+        .parent::<JsPropertyObjectMember>()
+        .and_then(|p| p.parent::<JsObjectMemberList>())
+        .and_then(|p| p.parent::<JsObjectExpression>())
+        .and_then(|p| p.parent::<JsCallArgumentList>())
+        .and_then(|p| p.parent::<JsCallArguments>())
+        .and_then(|p| p.parent::<JsCallExpression>());
+
+    if let Some(call) = call_expr {
+        if let AnyJsExpression::JsIdentifierExpression(ident) = call.callee().ok()? {
+            if ident.name().ok()?.value_token().ok()?.text_trimmed() == "css" {
+                return Some(EmbedCandidate::CssObjectCallTemplate {
+                    content: EmbedContent {
+                        element_range: chunk.range(),
+                        content_range: content_token.text_range(),
+                        content_offset: content_token.text_range().start(),
+                        text: content_token.token_text(),
+                    },
+                });
+            }
+        };
+    }
+
     let tag_kind = template_expression_to_template_tag(expr)?;
 
-    let content_token = chunk.template_chunk_token().ok()?;
     Some(EmbedCandidate::TaggedTemplate {
         tag: tag_kind,
         content: EmbedContent {

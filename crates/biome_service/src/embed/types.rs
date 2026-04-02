@@ -69,6 +69,11 @@ pub(crate) enum EmbedCandidate {
         content: EmbedContent,
     },
 
+    /// Template literal values in a plain object passed to `css(...)`, e.g.
+    /// ``css({ header: `color: red` })``.
+    /// Built from `JsTemplateExpression` by the JS handler.
+    CssObjectCallTemplate { content: EmbedContent },
+
     /// An inline JS expression in template syntax.
     /// Covers `{ expr }` (single), `{{ expr }}` (double), and Svelte control
     /// flow blocks (`{#if}`, `{#each}`, `{#await}`, `{#key}`).
@@ -112,6 +117,7 @@ impl EmbedCandidate {
             Self::Element { content, .. }
             | Self::Frontmatter { content }
             | Self::TaggedTemplate { content, .. }
+            | Self::CssObjectCallTemplate { content }
             | Self::TextExpression { content }
             | Self::Directive { content, .. } => content,
         }

@@ -31,6 +31,9 @@ pub(crate) enum EmbedDetector {
         target: EmbedTarget,
     },
 
+    /// Matches `EmbedCandidate::CssObjectCallTemplate` (``css({ key: `...` })``).
+    CssObjectCall { target: EmbedTarget },
+
     /// Matches `EmbedCandidate::TextExpression`. Always matches (no pattern).
     /// The guest language depends on the host framework.
     TextExpression { target: EmbedTarget },
@@ -101,6 +104,11 @@ impl EmbedDetector {
                 }
                 _ => None,
             },
+
+            // css({ ... }) object literal template values
+            (Self::CssObjectCall { target }, EmbedCandidate::CssObjectCallTemplate { .. }) => {
+                target.resolve(candidate, file_source)
+            }
 
             // TextExpression detector + TextExpression candidate: always matches
             (Self::TextExpression { target }, EmbedCandidate::TextExpression { .. }) => {
