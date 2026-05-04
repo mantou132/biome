@@ -972,7 +972,7 @@ impl Rule for OrganizeImports {
                         NewLineIssue::MissingNewLine => {
                             // Add missing newline
                             let newline = leading_newlines(&item).next();
-                            item = item.prepend_trivia_pieces(newline.into_iter())?
+                            item = item.prepend_trivia_pieces(newline)?
                         }
                     }
                     // Save the node

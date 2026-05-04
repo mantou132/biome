@@ -126,13 +126,10 @@ pub(crate) fn can_concisely_print_array_list(
                 match argument {
                     Ok(AnyJsLiteralExpression(
                         biome_js_syntax::AnyJsLiteralExpression::JsNumberLiteralExpression(literal),
-                    )) => {
-                        if signed && !comments.has_comments(literal.syntax()) {
+                    ))
+                        if signed && !comments.has_comments(literal.syntax()) => {
                             expr.into_syntax()
-                        } else {
-                            return false;
                         }
-                    }
                     _ => {
                         return false;
                     }

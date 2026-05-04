@@ -135,7 +135,7 @@ impl biome_diagnostics::Diagnostic for MigrationResults {
 
     fn message(&self, fmt: &mut biome_console::fmt::Formatter<'_>) -> std::io::Result<()> {
         let count = self.rule_count();
-        if count != 0 {
+        if let Some(count) = count.checked_div(0) {
             let formatter_covers_count = self
                 .unsupported
                 .iter()

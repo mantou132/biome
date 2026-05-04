@@ -1906,8 +1906,8 @@ impl<'src> JsLexer<'src> {
                     self.eat_byte(T![.])
                 }
             }
-            BSL => {
-                if self.peek_byte() == Some(b'u') {
+            BSL
+                if self.peek_byte() == Some(b'u') => {
                     self.next_byte();
                     let res = if self.peek_byte() == Some(b'{') {
                         self.next_byte();
@@ -1931,16 +1931,7 @@ impl<'src> JsLexer<'src> {
                         }
                         Err(_) => JsSyntaxKind::ERROR_TOKEN,
                     }
-                } else {
-                    let err = ParseDiagnostic::new(
-                        format!("unexpected token `{}`", byte as char),
-                        start..self.position + 1,
-                    );
-                    self.push_diagnostic(err);
-                    self.next_byte();
-                    JsSyntaxKind::ERROR_TOKEN
                 }
-            }
             QOT => {
                 if self.consume_str_literal(false) {
                     JS_STRING_LITERAL

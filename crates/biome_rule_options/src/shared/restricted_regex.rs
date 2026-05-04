@@ -227,8 +227,8 @@ fn validate_restricted_regex(pattern: &str) -> Result<(), RestrictedRegexError> 
             b']' => {
                 is_in_char_class = false;
             }
-            b'&' | b'~' | b'-' if is_in_char_class => {
-                if it.next().is_some_and(|(_, x)| x == c) {
+            b'&' | b'~' | b'-' if is_in_char_class
+                && it.next().is_some_and(|(_, x)| x == c) => {
                     return Err(RestrictedRegexError::new(
                         regex::Error::Syntax(
                             "Character class operator `&&`, `~~`, `--` are not supported."
@@ -237,7 +237,6 @@ fn validate_restricted_regex(pattern: &str) -> Result<(), RestrictedRegexError> 
                         i,
                     ));
                 }
-            }
             b'(' if !is_in_char_class => {
                 let mut lookahead = it.clone();
                 if let Some((_, b'?')) = lookahead.next() {

@@ -385,9 +385,7 @@ impl SemanticModelBuilder {
             flavor: self.flavor,
             scopes: self.scopes,
             scope_by_range: Lapper::new(
-                self.scope_range_by_start
-                    .iter()
-                    .flat_map(|(_, scopes)| scopes.iter())
+                self.scope_range_by_start.values().flat_map(|scopes| scopes.iter())
                     .cloned()
                     .collect(),
             ),
