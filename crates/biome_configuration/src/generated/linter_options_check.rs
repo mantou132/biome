@@ -1492,6 +1492,13 @@ pub fn config_side_rule_options_types() -> Vec<(&'static str, &'static str, Type
     ));
     result.push((
         "nursery",
+        "noVueImportCompilerMacros",
+        TypeId::of::<
+            biome_rule_options::no_vue_import_compiler_macros::NoVueImportCompilerMacrosOptions,
+        >(),
+    ));
+    result.push((
+        "nursery",
         "noVueOptionsApi",
         TypeId::of::<biome_rule_options::no_vue_options_api::NoVueOptionsApiOptions>(),
     ));
