@@ -2702,6 +2702,11 @@ See https://biomejs.dev/linter/rules/use-vue-multi-word-component-names
 	 */
 	useVueMultiWordComponentNames?: UseVueMultiWordComponentNamesConfiguration;
 	/**
+	* Enforces Promise syntax when using Vue nextTick.
+See https://biomejs.dev/linter/rules/use-vue-next-tick-promise 
+	 */
+	useVueNextTickPromise?: UseVueNextTickPromiseConfiguration;
+	/**
 	* Enforce that elements using v-for also specify a unique key.
 See https://biomejs.dev/linter/rules/use-vue-v-for-key 
 	 */
@@ -4675,6 +4680,9 @@ export type UseVueHyphenatedAttributesConfiguration =
 export type UseVueMultiWordComponentNamesConfiguration =
 	| RulePlainConfiguration
 	| RuleWithUseVueMultiWordComponentNamesOptions;
+export type UseVueNextTickPromiseConfiguration =
+	| RulePlainConfiguration
+	| RuleWithUseVueNextTickPromiseOptions;
 export type UseVueVForKeyConfiguration =
 	| RulePlainConfiguration
 	| RuleWithUseVueVForKeyOptions;
@@ -6599,6 +6607,10 @@ export interface RuleWithUseVueMultiWordComponentNamesOptions {
 	level: RulePlainConfiguration;
 	options?: UseVueMultiWordComponentNamesOptions;
 }
+export interface RuleWithUseVueNextTickPromiseOptions {
+	level: RulePlainConfiguration;
+	options?: UseVueNextTickPromiseOptions;
+}
 export interface RuleWithUseVueVForKeyOptions {
 	level: RulePlainConfiguration;
 	options?: UseVueVForKeyOptions;
@@ -8291,6 +8303,7 @@ export interface UseVueMultiWordComponentNamesOptions {
 	 */
 	ignores?: string[];
 }
+export type UseVueNextTickPromiseOptions = {};
 export type UseVueVForKeyOptions = {};
 export type UseVueValidTemplateRootOptions = {};
 export type UseVueValidVBindOptions = {};
@@ -9292,6 +9305,7 @@ export type Category =
 	| "lint/nursery/useVueDefineMacrosOrder"
 	| "lint/nursery/useVueHyphenatedAttributes"
 	| "lint/nursery/useVueMultiWordComponentNames"
+	| "lint/nursery/useVueNextTickPromise"
 	| "lint/nursery/useVueVForKey"
 	| "lint/nursery/useVueValidTemplateRoot"
 	| "lint/nursery/useVueValidVBind"
