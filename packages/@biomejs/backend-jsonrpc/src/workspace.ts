@@ -2742,6 +2742,11 @@ See https://biomejs.dev/linter/rules/use-vue-valid-v-else-if
 	 */
 	useVueValidVElseIf?: UseVueValidVElseIfConfiguration;
 	/**
+	* Enforces valid v-for directives in Vue templates.
+See https://biomejs.dev/linter/rules/use-vue-valid-v-for 
+	 */
+	useVueValidVFor?: UseVueValidVForConfiguration;
+	/**
 	* Enforce valid v-html directives.
 See https://biomejs.dev/linter/rules/use-vue-valid-v-html 
 	 */
@@ -4709,6 +4714,9 @@ export type UseVueValidVElseConfiguration =
 export type UseVueValidVElseIfConfiguration =
 	| RulePlainConfiguration
 	| RuleWithUseVueValidVElseIfOptions;
+export type UseVueValidVForConfiguration =
+	| RulePlainConfiguration
+	| RuleWithUseVueValidVForOptions;
 export type UseVueValidVHtmlConfiguration =
 	| RulePlainConfiguration
 	| RuleWithUseVueValidVHtmlOptions;
@@ -6649,6 +6657,10 @@ export interface RuleWithUseVueValidVElseIfOptions {
 	level: RulePlainConfiguration;
 	options?: UseVueValidVElseIfOptions;
 }
+export interface RuleWithUseVueValidVForOptions {
+	level: RulePlainConfiguration;
+	options?: UseVueValidVForOptions;
+}
 export interface RuleWithUseVueValidVHtmlOptions {
 	level: RulePlainConfiguration;
 	options?: UseVueValidVHtmlOptions;
@@ -8323,6 +8335,7 @@ export type UseVueValidVBindOptions = {};
 export type UseVueValidVCloakOptions = {};
 export type UseVueValidVElseOptions = {};
 export type UseVueValidVElseIfOptions = {};
+export type UseVueValidVForOptions = {};
 export type UseVueValidVHtmlOptions = {};
 export type UseVueValidVIfOptions = {};
 export interface UseVueValidVOnOptions {
