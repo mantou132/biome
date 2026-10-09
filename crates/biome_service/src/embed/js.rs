@@ -27,14 +27,19 @@ pub(crate) enum EmbedCandidate {
     JsxStyleAttribute {
         content: EmbedContent,
     },
+    /// Template literal value of a property in an object literal passed to
+    /// `css(...)`, e.g. ``css({ header: `color: red` })``.
+    CssObjectCallTemplate {
+        content: EmbedContent,
+    },
 }
 
 impl EmbedCandidate {
     pub fn content(&self) -> EmbedContent {
         match self {
-            Self::TaggedTemplate { content, .. } | Self::JsxStyleAttribute { content } => {
-                content.clone()
-            }
+            Self::TaggedTemplate { content, .. }
+            | Self::JsxStyleAttribute { content }
+            | Self::CssObjectCallTemplate { content } => content.clone(),
         }
     }
 }
@@ -64,7 +69,10 @@ impl EmbedDetectorsRegistry {
         candidate: &EmbedCandidate,
         file_source: &DocumentFileSource,
     ) -> Option<EmbedMatch> {
-        if matches!(candidate, EmbedCandidate::JsxStyleAttribute { .. }) {
+        if matches!(
+            candidate,
+            EmbedCandidate::JsxStyleAttribute { .. } | EmbedCandidate::CssObjectCallTemplate { .. }
+        ) {
             return Some(EmbedMatch {
                 guest: GuestLanguage::Css,
             });

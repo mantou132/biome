@@ -78,8 +78,9 @@ use biome_js_semantic::{SVELTE_RUNES, SemanticModelOptions, js_semantic_model, s
 #[cfg(feature = "js_embeds")]
 use biome_js_syntax::{
     AnyJsExpression, AnyJsTemplateElement, AnyJsxAttributeName, AnyJsxAttributeValue,
-    JsCallArgumentList, JsCallArguments, JsCallExpression, JsTemplateExpression, JsxAttribute,
-    JsxAttributeList, jsx_ext::AnyJsxElement,
+    JsCallArgumentList, JsCallArguments, JsCallExpression, JsObjectExpression, JsObjectMemberList,
+    JsPropertyObjectMember, JsTemplateExpression, JsxAttribute, JsxAttributeList,
+    jsx_ext::AnyJsxElement,
 };
 #[cfg(feature = "type_inference")]
 use biome_js_syntax::{
@@ -810,7 +811,8 @@ fn build_jsx_style_candidate(attribute: &JsxAttribute) -> Option<EmbedCandidate>
     })
 }
 
-/// Build an `EmbedCandidate::TaggedTemplate` from a `JsTemplateExpression`.
+/// Build an `EmbedCandidate::TaggedTemplate` or
+/// `EmbedCandidate::CssObjectCallTemplate` from a `JsTemplateExpression`.
 ///
 /// Returns `None` if:
 /// - The template has interpolations (not supported yet)
@@ -826,18 +828,49 @@ fn build_js_template_candidate(expr: &JsTemplateExpression) -> Option<EmbedCandi
         return None;
     };
 
-    let tag_kind = template_expression_to_template_tag(expr)?;
-
     let content_token = chunk.template_chunk_token().ok()?;
+    let content = EmbedContent {
+        element_range: chunk.range(),
+        content_range: content_token.text_range(),
+        content_offset: content_token.text_range().start(),
+        text: content_token.token_text(),
+    };
+
+    if is_css_object_call_template(expr) {
+        return Some(EmbedCandidate::CssObjectCallTemplate { content });
+    }
+
+    let tag_kind = template_expression_to_template_tag(expr)?;
     Some(EmbedCandidate::TaggedTemplate {
         tag: tag_kind,
-        content: EmbedContent {
-            element_range: chunk.range(),
-            content_range: content_token.text_range(),
-            content_offset: content_token.text_range().start(),
-            text: content_token.token_text(),
-        },
+        content,
     })
+}
+
+/// Returns `true` for an untagged template that is the value of a property in
+/// an object literal passed directly to `css(...)`, e.g. ``css({ key: `...` })``.
+#[cfg(feature = "js_embeds")]
+fn is_css_object_call_template(expr: &JsTemplateExpression) -> bool {
+    if expr.tag().is_some() {
+        return false;
+    }
+    let Some(call) = expr
+        .parent::<JsPropertyObjectMember>()
+        .and_then(|member| member.parent::<JsObjectMemberList>())
+        .and_then(|list| list.parent::<JsObjectExpression>())
+        .and_then(|object| object.parent::<JsCallArgumentList>())
+        .and_then(|list| list.parent::<JsCallArguments>())
+        .and_then(|arguments| arguments.parent::<JsCallExpression>())
+    else {
+        return false;
+    };
+    let Ok(AnyJsExpression::JsIdentifierExpression(ident)) = call.callee() else {
+        return false;
+    };
+    ident
+        .name()
+        .and_then(|name| name.value_token())
+        .is_ok_and(|token| token.text_trimmed() == "css")
 }
 
 /// Classify a template expression's tag into a `TemplateTagKind`.
